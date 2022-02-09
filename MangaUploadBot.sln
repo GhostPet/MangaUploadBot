@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32112.339
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MangaUploadBot", "MangaUploadBot\MangaUploadBot.csproj", "{E75C3589-68CA-48E3-974D-0E05931B5F44}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E75C3589-68CA-48E3-974D-0E05931B5F44}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E75C3589-68CA-48E3-974D-0E05931B5F44}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E75C3589-68CA-48E3-974D-0E05931B5F44}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E75C3589-68CA-48E3-974D-0E05931B5F44}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C0B5105D-4DB3-436D-8CC8-A7F44FCEC6BC}
+	EndGlobalSection
+EndGlobal
