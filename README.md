@@ -1,5 +1,5 @@
 
-#				Turktoon Upload Bot v.1.0.1				#
+#				Turktoon Upload Bot				#
 
 Turktoon.com için yaptığım toplu manga yükleme botu.
 
