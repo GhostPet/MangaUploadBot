@@ -3,6 +3,9 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+# Google Api Credential file
+turktoon-bot-55d1a7b67f2f.json
+
 # User-specific files
 *.rsuser
 *.suo
