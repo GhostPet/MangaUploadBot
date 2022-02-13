@@ -17,6 +17,7 @@ namespace MangaUploadBot
         User user;
         IWebDriver driver;
         SheetsService service;
+        string spreadsheetId;
 
         IList<IList<Object>> mangas;
         IList<Object> selectedmanga;
@@ -26,17 +27,18 @@ namespace MangaUploadBot
         string[] files;
         string label4text;
 
-        string version = "1.0.1";
+        string version = "1.0.3";
 
-        public MainUi(IWebDriver d, User u)
+        public MainUi(IWebDriver driver, User user, string credentials, string spreadsheetId)
         {
-            driver = d;
-            user = u;
+            this.driver = driver;
+            this.user = user;
+            this.spreadsheetId = spreadsheetId;
 
             InitializeComponent();
 
             GoogleCredential credential;
-            using (var stream = new FileStream("turktoon-bot-55d1a7b67f2f.json", FileMode.Open, FileAccess.Read))
+            using (var stream = new FileStream(credentials, FileMode.Open, FileAccess.Read))
             {
                 credential = GoogleCredential.FromStream(stream).CreateScoped(Scopes);
             }
@@ -47,6 +49,8 @@ namespace MangaUploadBot
                 ApplicationName = "Turktoon Upload Bot by GhostPet",
             });
 
+            checkforupdates(false);
+
             refreshgoogledata();
         }
 
@@ -54,16 +58,16 @@ namespace MangaUploadBot
         {
             this.selectedcover = null;
             this.selectedmanga = null;
-
-            String spreadsheetId = "1-71OojtQ3941aO203ZIYUMFAtAxsYoXSSPCxrvDsRpY";
+            comboBox1.Items.Clear();
+            comboBox2.Items.Clear();
 
             String range = "series!A2:B";
-            SpreadsheetsResource.ValuesResource.GetRequest request = this.service.Spreadsheets.Values.Get(spreadsheetId, range);
+            SpreadsheetsResource.ValuesResource.GetRequest request = this.service.Spreadsheets.Values.Get(this.spreadsheetId, range);
             ValueRange response = request.Execute();
             this.mangas = response.Values;
 
             String range2 = "covers!A2:D";
-            SpreadsheetsResource.ValuesResource.GetRequest request2 = this.service.Spreadsheets.Values.Get(spreadsheetId, range2);
+            SpreadsheetsResource.ValuesResource.GetRequest request2 = this.service.Spreadsheets.Values.Get(this.spreadsheetId, range2);
             ValueRange response2 = request2.Execute();
             this.covers = response2.Values;
 
@@ -71,6 +75,31 @@ namespace MangaUploadBot
             {
                 comboBox1.Items.Add(value[1]);
             }
+        }
+
+        private void checkforupdates(bool show)
+        {
+            String range = "usage!C2:C2";
+            SpreadsheetsResource.ValuesResource.GetRequest request = this.service.Spreadsheets.Values.Get(this.spreadsheetId, range);
+            ValueRange response = request.Execute();
+            String latestversion = response.Values[0][0].ToString();
+
+            if (latestversion != this.version)
+            {
+                MessageBox.Show("Yeni bir sürüm mevcut. \nCihazınızdaki sürüm:" + this.version + "\nGüncel sürüm:" + latestversion + "\nİndirme bağlantısı: https://github.com/GhostPet/MangaUploadBot/releases");
+            }
+            else
+            {
+                if (show) MessageBox.Show("Şu anda en güncel sürümü kullanmaktasınız.");
+            }
+        }
+
+        private void reset()
+        {
+            refreshgoogledata();
+            this.files = null;
+            label3.Text = "Bir dosya seçiniz.";
+            button2.Text = "Yükle";
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -91,6 +120,7 @@ namespace MangaUploadBot
         private void button2_Click(object sender, EventArgs e)
         {
             button2.Enabled = false;
+            button2.Text = "Yükleniyor...";
             backgroundWorker2.RunWorkerAsync();
         }
 
@@ -109,7 +139,7 @@ namespace MangaUploadBot
         {
             this.selectedcover = null;
             comboBox2.Items.Clear();
-            comboBox2.Enabled = false;
+            comboBox2.Items.Add("-");
 
             foreach (var value in mangas)
             {
@@ -169,7 +199,7 @@ namespace MangaUploadBot
                 String[] temp = file.Split("\\".ToCharArray());
                 String filename = temp[temp.Length - 1];
 
-                this.label4text = a + "/" + this.files.Length + ": " + filename + ". bölüm paylaşılıyor...";
+                this.label4text = a+1 + "/" + this.files.Length + ": " + filename + ". bölüm paylaşılıyor...";
                 backgroundWorker2.ReportProgress((int)Math.Round((double)(100 * a) / this.files.Length));
                 sharer.Share(this.selectedmanga, this.selectedcover, filename, file, backgroundWorker2, a, this.files.Length);
                 a += 1;
@@ -181,7 +211,7 @@ namespace MangaUploadBot
 
         private void backgroundWorker2_RunWorkerCompleted(object sender, System.ComponentModel.RunWorkerCompletedEventArgs e)
         {
-            button2.Enabled = true;
+            reset();
         }
 
         private void button3_Click(object sender, EventArgs e)
@@ -191,26 +221,12 @@ namespace MangaUploadBot
 
         private void güncelleştirmeleriDenetleToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            String spreadsheetId = "1-71OojtQ3941aO203ZIYUMFAtAxsYoXSSPCxrvDsRpY";
-
-            String range = "usage!C2:C2";
-            SpreadsheetsResource.ValuesResource.GetRequest request = this.service.Spreadsheets.Values.Get(spreadsheetId, range);
-            ValueRange response = request.Execute();
-            String latestversion = response.Values[0][0].ToString();
-
-            if (latestversion != version)
-            {
-                MessageBox.Show("Şu anda eski bir sürümü kullanıyorsunuz. Güncel sürüm:" + latestversion);
-            }
-            else
-            {
-                MessageBox.Show("Şu anda en son sürümü kullanmaktasınız.");
-            }
+            checkforupdates(true);
         }
 
         private void hakkındaToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("Turktoon Upload Bot Sürüm " + version + "\n\nTurktoon Upload Bot'u GhostPet tarafından yapılmıştır. Tüm hakları saklıdır.");
+            MessageBox.Show("Turktoon Upload Bot Sürüm " + this.version + "\n\nGhostPet tarafından yapılmıştır. Tüm hakları saklıdır.");
         }
     }
 }

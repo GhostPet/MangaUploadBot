@@ -2,6 +2,7 @@
 using OpenQA.Selenium.Chrome;
 using System;
 using System.ComponentModel;
+using System.IO;
 using System.Windows.Forms;
 
 namespace MangaUploadBot
@@ -12,10 +13,17 @@ namespace MangaUploadBot
         IWebDriver driver;
         User user;
 
-        public Login(ChromeDriver driver, User user)
+        public Login(ChromeDriver driver, User user, string credentials)
         {
             this.driver = driver;
             this.user = user;
+
+            if (!File.Exists(credentials))
+            {
+                MessageBox.Show("Botu kullanmak için botun bulunduğu klasöre şu dosyayı atın: " + credentials);
+                this.Close();
+            }
+
             InitializeComponent();
         }
 
@@ -23,7 +31,7 @@ namespace MangaUploadBot
         {
             if (!textBox1.Text.Equals("") && !textBox2.Text.Equals(""))
             {
-                label4.Text = "Durum: Giriş yapılıyor...";
+                label4.Text = "Giriş yapılıyor...";
                 backgroundWorker1.RunWorkerAsync();
             }
         }

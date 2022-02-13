@@ -25,11 +25,15 @@ namespace MangaUploadBot
             ChromeDriver driver = new ChromeDriver(service, options);
             User user = new User("", "");
 
-            Application.Run(new Login(driver, user));
+            // Botu kendinize uyarlamak isterseniz buradakileri değiştirmeniz gerekebilir.
+            string credentials = "turktoon-bot-55d1a7b67f2f.json";
+            string spreadsheetId = "1-71OojtQ3941aO203ZIYUMFAtAxsYoXSSPCxrvDsRpY";
+
+            Application.Run(new Login(driver, user, credentials));
 
             if (!user.UserName.Equals("") && !user.Password.Equals(""))
             {
-                Application.Run(new MainUi(driver, user));
+                Application.Run(new MainUi(driver, user, credentials, spreadsheetId));
             }
 
             driver.Close();

@@ -49,6 +49,10 @@
             this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             this.backgroundWorker2 = new System.ComponentModel.BackgroundWorker();
             this.button3 = new System.Windows.Forms.Button();
+            this.ekleToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.yeniToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.mangaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.kapakToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -106,6 +110,7 @@
             this.menuStrip1.BackColor = System.Drawing.SystemColors.ControlDarkDark;
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.hesapToolStripMenuItem,
+            this.ekleToolStripMenuItem,
             this.yardımToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
@@ -217,6 +222,36 @@
             this.button3.UseVisualStyleBackColor = true;
             this.button3.Click += new System.EventHandler(this.button3_Click);
             // 
+            // ekleToolStripMenuItem
+            // 
+            this.ekleToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.yeniToolStripMenuItem});
+            this.ekleToolStripMenuItem.Name = "ekleToolStripMenuItem";
+            this.ekleToolStripMenuItem.Size = new System.Drawing.Size(61, 20);
+            this.ekleToolStripMenuItem.Text = "Düzenle";
+            // 
+            // yeniToolStripMenuItem
+            // 
+            this.yeniToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.mangaToolStripMenuItem,
+            this.kapakToolStripMenuItem});
+            this.yeniToolStripMenuItem.Enabled = false;
+            this.yeniToolStripMenuItem.Name = "yeniToolStripMenuItem";
+            this.yeniToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.yeniToolStripMenuItem.Text = "Yeni (Yakında)";
+            // 
+            // mangaToolStripMenuItem
+            // 
+            this.mangaToolStripMenuItem.Name = "mangaToolStripMenuItem";
+            this.mangaToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.mangaToolStripMenuItem.Text = "Manga";
+            // 
+            // kapakToolStripMenuItem
+            // 
+            this.kapakToolStripMenuItem.Name = "kapakToolStripMenuItem";
+            this.kapakToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.kapakToolStripMenuItem.Text = "Kapak";
+            // 
             // MainUi
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -267,6 +302,10 @@
         private System.ComponentModel.BackgroundWorker backgroundWorker1;
         private System.ComponentModel.BackgroundWorker backgroundWorker2;
         private System.Windows.Forms.Button button3;
+        private System.Windows.Forms.ToolStripMenuItem ekleToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem yeniToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem mangaToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem kapakToolStripMenuItem;
     }
 }
 
