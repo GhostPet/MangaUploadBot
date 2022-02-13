@@ -26,7 +26,7 @@ namespace MangaUploadBot
             User user = new User("", "");
 
             // Botu kendinize uyarlamak isterseniz buradakileri değiştirmeniz gerekebilir.
-            string credentials = "turktoon-bot-55d1a7b67f2f.json";
+            string credentials = "turktoon-bot-333a3035d81b.json";
             string spreadsheetId = "1-71OojtQ3941aO203ZIYUMFAtAxsYoXSSPCxrvDsRpY";
 
             Application.Run(new Login(driver, user, credentials));
