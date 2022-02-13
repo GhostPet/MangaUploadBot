@@ -1,30 +1,17 @@
 ﻿using OpenQA.Selenium;
-using OpenQA.Selenium.Chrome;
 using System;
 using System.Collections.Generic;
 using System.IO;
 
 namespace MangaUploadBot
 {
-    public class User
-    {
-        public String UserName;
-        public String Password;
-
-        public User(String u, String p)
-        {
-            this.UserName = u;
-            this.Password = p;
-        }
-    }
-
-    public class Sharer
+    public class Uploader
     {
         IWebDriver driver;
 
-        public Sharer (IWebDriver d)
+        public Uploader(Driver d)
         {
-            this.driver = d;
+            this.driver = d.driver;
         }
 
         public void CheckImageNames(String filepath)
@@ -84,7 +71,37 @@ namespace MangaUploadBot
             return;
         }
 
-        public void Share (IList<Object> manga, IList<Object> cover, String filename, String filepath, System.ComponentModel.BackgroundWorker backgroundWorker2, int a, int total)
+        public string CoverUpload(String filepath)
+        {
+            // Resim Yükleme Sayfasını Aç
+            this.driver.Navigate().GoToUrl("https://turktoon.com/wp-admin/media-new.php");
+
+            // Siteye Yükle
+            this.driver.FindElement(By.XPath("//input[starts-with(@id,'html5_')]")).SendKeys(filepath);
+
+            // Yüklenen dosyayı bul
+            IWebElement row = this.driver.FindElement(By.Id("media-items")).FindElement(By.ClassName("media-item"));
+
+            // Yüklemesi bitti mi kontrol et.
+            string imglink;
+            while (true)
+            {
+                try
+                {
+                    IWebElement pinkynail = row.FindElement(By.ClassName("pinkynail"));
+                    imglink = pinkynail.GetAttribute("src");
+                    break;
+                }
+                catch
+                {
+                    System.Threading.Thread.Sleep(200);
+                }
+            }
+
+            return "<img src=\"" + imglink + "\" alt = \"\" class=\"aligncenter size-full\" />";
+        }
+
+        public void Share(IList<Object> manga, IList<Object> cover, String filename, String filepath, System.ComponentModel.BackgroundWorker backgroundWorker2, int a, int total)
         {
             // Resim Yükleme Sayfasını Aç
             this.driver.Navigate().GoToUrl("https://turktoon.com/wp-admin/media-new.php");
@@ -101,8 +118,8 @@ namespace MangaUploadBot
                 this.driver.FindElement(By.XPath("//input[starts-with(@id,'html5_')]")).SendKeys(imgdir);
             }
 
-            //------- Yükleme Yüzdesi +0,4
-            backgroundWorker2.ReportProgress((int)Math.Round((double)(100 * (a + 0.1)) / total));
+            //------- Yükleme Yüzdesi +0,05
+            backgroundWorker2.ReportProgress((int)Math.Round((double)(100 * (a + 0.05)) / total));
 
             // Resimlerin yüklendiği tabloda sıraları bul
             IReadOnlyCollection<IWebElement> rows = this.driver.FindElement(By.Id("media-items")).FindElements(By.ClassName("media-item"));
@@ -126,15 +143,15 @@ namespace MangaUploadBot
                     }
                 }
                 tempint++;
-                double temppercent = tempint / rows.Count * 3 / 10;
-                backgroundWorker2.ReportProgress((int)Math.Round((double)(100 * (a + 0.6 + temppercent) / total)));
+                double temppercent = tempint / rows.Count / 2.5f;
+                backgroundWorker2.ReportProgress((int)Math.Round((double)(100 * (a + 0.1 + temppercent) / total)));
             }
-
-            //------- Yükleme Yüzdesi +0,7
-            backgroundWorker2.ReportProgress((int)Math.Round((double)(100 * (a + 0.4) / total)));
 
             // Yükleme Sayfasını Aç
             this.driver.Navigate().GoToUrl("https://turktoon.com/wp-admin/post-new.php?post_type=post&ts_add_chapter=" + manga[0]);
+
+            //------- Yükleme Yüzdesi +0,6
+            backgroundWorker2.ReportProgress((int)Math.Round((double)(100 * (a + 0.6) / total)));
 
             // Bölüm Bilgilerini Doldur
             this.driver.FindElement(By.CssSelector("#title")).SendKeys("#" + filename);
@@ -142,15 +159,14 @@ namespace MangaUploadBot
             try { this.driver.FindElement(By.ClassName("switch-html")).Click(); }
             catch { System.Threading.Thread.Sleep(10); }
 
-            backgroundWorker2.ReportProgress((int)Math.Round((double)(100 * (a + 0.45) / total)));
+            //------- Yükleme Yüzdesi +0,65
+            backgroundWorker2.ReportProgress((int)Math.Round((double)(100 * (a + 0.65) / total)));
 
             // Bölüm Kapağını (Var ise) Ekle
             if (cover != null)
             {
                 this.driver.FindElement(By.Id("content")).SendKeys(cover[3].ToString() + Keys.Enter + Keys.Enter);
             }
-
-            backgroundWorker2.ReportProgress((int)Math.Round((double)(100 * (a + 0.5) / total)));
 
             // Bölüm Resimlerini Ekle
             int tempint2 = 0;
@@ -159,11 +175,11 @@ namespace MangaUploadBot
                 this.driver.FindElement(By.Id("content")).SendKeys("<img src=\"" + imglink + "\" alt = \"\" class=\"aligncenter size-full\" />" + Keys.Enter + Keys.Enter);
                 tempint++;
                 double temppercent2 = tempint2 / imglinks.Count / 5;
-                backgroundWorker2.ReportProgress((int)Math.Round((double)(100 * (a + 0.6 + temppercent2) / total)));
+                backgroundWorker2.ReportProgress((int)Math.Round((double)(100 * (a + 0.7 + temppercent2) / total)));
             }
 
             //------- Yükleme Yüzdesi +0,9
-            backgroundWorker2.ReportProgress((int)Math.Round((double)(100 * (a + 0.9) / total)));
+            backgroundWorker2.ReportProgress((int)Math.Round((double)(100 * (a + 0.95) / total)));
 
             // Paylaş
             this.driver.FindElement(By.Name("publish")).Click();

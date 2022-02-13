@@ -1,5 +1,4 @@
-﻿using OpenQA.Selenium.Chrome;
-using System;
+﻿using System;
 using System.Windows.Forms;
 
 namespace MangaUploadBot
@@ -15,29 +14,20 @@ namespace MangaUploadBot
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            ChromeOptions options = new ChromeOptions();
-            options.AddArgument("headless");
-
-            ChromeDriverService service = ChromeDriverService.CreateDefaultService();
-            service.HideCommandPromptWindow = true;
-
-
-            ChromeDriver driver = new ChromeDriver(service, options);
-            User user = new User("", "");
+            string version = "1.1.0";
 
             // Botu kendinize uyarlamak isterseniz buradakileri değiştirmeniz gerekebilir.
             string credentials = "turktoon-bot-333a3035d81b.json";
             string spreadsheetId = "1-71OojtQ3941aO203ZIYUMFAtAxsYoXSSPCxrvDsRpY";
 
-            Application.Run(new Login(driver, user, credentials));
+            GoogleApi googleapi = new GoogleApi(credentials, spreadsheetId);
+            if (!googleapi.IsCredentialExists) return;
 
-            if (!user.UserName.Equals("") && !user.Password.Equals(""))
-            {
-                Application.Run(new MainUi(driver, user, credentials, spreadsheetId));
-            }
-
-            driver.Close();
-            driver.Quit();
+            Driver driver = new Driver(true);
+            User user = new User();
+            Application.Run(new Login(driver, user));
+            if (user.LoggedIn) Application.Run(new MainUi(user, googleapi, driver, version));
+            driver.Exit();
         }
     }
 }

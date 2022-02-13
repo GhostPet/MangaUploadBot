@@ -1,9 +1,4 @@
-﻿using Google.Apis.Auth.OAuth2;
-using Google.Apis.Services;
-using Google.Apis.Sheets.v4;
-using Google.Apis.Sheets.v4.Data;
-using OpenQA.Selenium;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
@@ -12,127 +7,91 @@ namespace MangaUploadBot
 {
     public partial class MainUi : Form
     {
-        static string[] Scopes = { SheetsService.Scope.SpreadsheetsReadonly };
-
+        Uploader uploader;
         User user;
-        IWebDriver driver;
-        SheetsService service;
-        string spreadsheetId;
-
+        GoogleApi GoogleApi;
+        Driver driver;
+        string version;
         IList<IList<Object>> mangas;
         IList<Object> selectedmanga;
         IList<IList<Object>> covers;
         IList<Object> selectedcover;
-
         string[] files;
         string label4text;
 
-        string version = "1.0.3";
-
-        public MainUi(IWebDriver driver, User user, string credentials, string spreadsheetId)
+        public MainUi(User user, GoogleApi api, Driver driver, string version)
         {
-            this.driver = driver;
             this.user = user;
-            this.spreadsheetId = spreadsheetId;
-
+            this.GoogleApi = api;
+            this.driver = driver;
+            this.uploader = new Uploader(driver);
+            this.version = version;
             InitializeComponent();
-
-            GoogleCredential credential;
-            using (var stream = new FileStream(credentials, FileMode.Open, FileAccess.Read))
-            {
-                credential = GoogleCredential.FromStream(stream).CreateScoped(Scopes);
-            }
-
-            this.service = new SheetsService(new BaseClientService.Initializer()
-            {
-                HttpClientInitializer = credential,
-                ApplicationName = "Turktoon Upload Bot by GhostPet",
-            });
-
-            checkforupdates(false);
-
+            GoogleApi.Checkforupdates(version, false);
             refreshgoogledata();
         }
 
-        private void refreshgoogledata()
+        void refreshgoogledata()
         {
             this.selectedcover = null;
             this.selectedmanga = null;
             comboBox1.Items.Clear();
             comboBox2.Items.Clear();
+            comboBox2.Items.Add("-");
 
-            String range = "series!A2:B";
-            SpreadsheetsResource.ValuesResource.GetRequest request = this.service.Spreadsheets.Values.Get(this.spreadsheetId, range);
-            ValueRange response = request.Execute();
-            this.mangas = response.Values;
-
-            String range2 = "covers!A2:D";
-            SpreadsheetsResource.ValuesResource.GetRequest request2 = this.service.Spreadsheets.Values.Get(this.spreadsheetId, range2);
-            ValueRange response2 = request2.Execute();
-            this.covers = response2.Values;
+            this.mangas = GoogleApi.GetData("series!A2:B");
+            this.covers = GoogleApi.GetData("covers!A2:D");
 
             foreach (var value in mangas)
             {
                 comboBox1.Items.Add(value[1]);
             }
         }
-
-        private void checkforupdates(bool show)
-        {
-            String range = "usage!C2:C2";
-            SpreadsheetsResource.ValuesResource.GetRequest request = this.service.Spreadsheets.Values.Get(this.spreadsheetId, range);
-            ValueRange response = request.Execute();
-            String latestversion = response.Values[0][0].ToString();
-
-            if (latestversion != this.version)
-            {
-                MessageBox.Show("Yeni bir sürüm mevcut. \nCihazınızdaki sürüm:" + this.version + "\nGüncel sürüm:" + latestversion + "\nİndirme bağlantısı: https://github.com/GhostPet/MangaUploadBot/releases");
-            }
-            else
-            {
-                if (show) MessageBox.Show("Şu anda en güncel sürümü kullanmaktasınız.");
-            }
-        }
-
-        private void reset()
+        void reset()
         {
             refreshgoogledata();
             this.files = null;
-            label3.Text = "Bir dosya seçiniz.";
+            label3.Text = "Bir dosya seçin ya da sürükleyip bırakın.";
+            button1.Text = "Dosya Seç";
             button2.Text = "Yükle";
+            yeniToolStripMenuItem.Enabled = true;
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
-            using (FolderBrowserDialog dlg = new FolderBrowserDialog())
+            if (this.files == null)
             {
-                dlg.Description = "Bir Dosya Seçin";
-                if (dlg.ShowDialog() == DialogResult.OK)
+                using (FolderBrowserDialog dlg = new FolderBrowserDialog())
                 {
-                    this.files = Directory.GetDirectories(dlg.SelectedPath);
-                    label3.Text = this.files.Length + " adet bölüm paylaşılacak.";
+                    dlg.Description = "Bir Dosya Seçin";
+                    if (dlg.ShowDialog() == DialogResult.OK)
+                    {
+                        this.files = Directory.GetDirectories(dlg.SelectedPath);
+                        label3.Text = this.files.Length + " adet bölüm paylaşılacak.";
+                    }
                 }
+
+                button1.Text = "Temizle";
+                button2.Enabled = true;
             }
-
-            button2.Enabled = true;
+            else
+            {
+                this.files = null;
+                label3.Text = "Bir dosya seçin ya da sürükleyip bırakın.";
+                button1.Text = "Bölüm Seç";
+                button2.Enabled = false;
+            }
         }
-
         private void button2_Click(object sender, EventArgs e)
         {
             button2.Enabled = false;
+            yeniToolStripMenuItem.Enabled = false;
             button2.Text = "Yükleniyor...";
-            backgroundWorker2.RunWorkerAsync();
+            backgroundWorker.RunWorkerAsync();
         }
-
-        private void çıkışYapToolStripMenuItem_Click(object sender, EventArgs e)
+        private void button3_Click(object sender, EventArgs e)
         {
-            this.Close();
-        }
-
-        private void kullanıcıDeğiştirToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            this.Close();
-            Application.Restart();
+            refreshgoogledata();
         }
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
@@ -154,7 +113,6 @@ namespace MangaUploadBot
             {
                 if (value[0].Equals(comboBox1.SelectedItem.ToString()))
                 {
-                    comboBox2.Enabled = true;
                     comboBox2.Items.Add(value[1]);
                     if (this.selectedcover == null)
                     {
@@ -169,7 +127,6 @@ namespace MangaUploadBot
 
             }
         }
-
         private void comboBox2_SelectedIndexChanged(object sender, EventArgs e)
         {
             this.selectedcover = null;
@@ -183,15 +140,107 @@ namespace MangaUploadBot
             }
         }
 
-        private void backgroundWorker2_ProgressChanged(object sender, System.ComponentModel.ProgressChangedEventArgs e)
+        private void label3_Click(object sender, EventArgs e)
         {
-            progressBar1.Value = e.ProgressPercentage;
-            label4.Text = this.label4text;
+            MessageBox.Show("Seçeceğiniz dosya tüm bölümleri içeren bir klasör olmalıdır. Tüm bölümleri içeren klasörlerin adları bölüm numaraları şeklinde olmalıdır.");
         }
 
-        private void backgroundWorker2_DoWork(object sender, System.ComponentModel.DoWorkEventArgs e)
+        // Menüler
+        private void çıkışYapToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Sharer sharer = new Sharer(this.driver);
+            this.Close();
+        }
+        private void kullanıcıDeğiştirToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            this.Close();
+            Application.Restart();
+        }
+        private void güncelleştirmeleriDenetleToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            GoogleApi.Checkforupdates(version, true);
+        }
+        private void hakkındaToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("Turktoon Upload Bot Sürüm " + this.version + "\n\nGhostPet tarafından yapılmıştır. Tüm hakları saklıdır.");
+        }
+        private void mangaToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            button2.Enabled = false;
+            this.label4text = "Ayarların kapatılması bekleniyor...";
+            AddManga newMDIChild = new AddManga(this.driver, this.GoogleApi);
+            newMDIChild.Show();
+            reset();
+        }
+        private void kapakToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            button2.Enabled = false;
+            this.label4text = "Ayarların kapatılması bekleniyor...";
+            AddCover newMDIChild = new AddCover(this.uploader, this.GoogleApi, this.mangas);
+            newMDIChild.Show();
+            reset();
+        }
+
+        // Sürükle Bırak Dosya Seç
+        private void MainUi_DragEnter(object sender, DragEventArgs e)
+        {
+            label3.Text = "Klasörü buraya bırakın.";
+            if (e.Data.GetDataPresent(DataFormats.FileDrop)) e.Effect = DragDropEffects.Copy;
+        }
+        private void MainUi_DragDrop(object sender, DragEventArgs e)
+        {
+            if (this.files != null)
+            {
+                DialogResult dialogResult = MessageBox.Show("Zaten başka bir bölüm seçilmiş, değiştirmek istiyor musun?", "Uyarı Kutusu", MessageBoxButtons.YesNo);
+                if (dialogResult == DialogResult.No)
+                {
+                    return;
+                }
+            }
+            string[] dropfiles = (string[])e.Data.GetData(DataFormats.FileDrop);
+            
+            if (dropfiles.Length == 1 && Directory.Exists(dropfiles[0]))
+            {
+                foreach (string item in Directory.GetDirectories(dropfiles[0]))
+                {
+                    if (Directory.Exists(item))
+                    {
+                        this.files = Directory.GetDirectories(dropfiles[0]);
+                        break;
+                    }
+                }
+                this.files = dropfiles;
+            }
+            else if (dropfiles.Length == 1)
+            {
+                label3.Text = "Canım benim, buraya resim değil, dosya atacaksın.";
+                return;
+            }
+            else
+            {
+                foreach (string filename in dropfiles)
+                {
+                    if (!Directory.Exists(filename))
+                    {
+                        label3.Text = "Canım benim, buraya SADECE klasör atacaksın.";
+                        return;
+                    }
+                }
+
+                this.files = dropfiles;
+            }
+
+            label3.Text = this.files.Length + " adet bölüm paylaşılacak.";
+            button1.Text = "Temizle";
+            button2.Enabled = true;
+        }
+        private void MainUi_DragLeave(object sender, EventArgs e)
+        {
+            label3.Text = "Bir dosya seçin ya da sürükleyip bırakın.";
+        }
+
+        // Bölüm Paylaşma
+        private void backgroundWorker_DoWork(object sender, System.ComponentModel.DoWorkEventArgs e)
+        {
             int a = 0;
 
             foreach (String file in this.files)
@@ -199,34 +248,23 @@ namespace MangaUploadBot
                 String[] temp = file.Split("\\".ToCharArray());
                 String filename = temp[temp.Length - 1];
 
-                this.label4text = a+1 + "/" + this.files.Length + ": " + filename + ". bölüm paylaşılıyor...";
-                backgroundWorker2.ReportProgress((int)Math.Round((double)(100 * a) / this.files.Length));
-                sharer.Share(this.selectedmanga, this.selectedcover, filename, file, backgroundWorker2, a, this.files.Length);
+                this.label4text = a + 1 + "/" + this.files.Length + ": " + filename + ". bölüm paylaşılıyor...";
+                backgroundWorker.ReportProgress((int)Math.Round((double)(100 * a) / this.files.Length));
+                this.uploader.Share(this.selectedmanga, this.selectedcover, filename, file, backgroundWorker, a, this.files.Length);
                 a += 1;
             }
 
             this.label4text = "Tamamlandı.";
-            backgroundWorker2.ReportProgress(100);
+            backgroundWorker.ReportProgress(100);
         }
-
-        private void backgroundWorker2_RunWorkerCompleted(object sender, System.ComponentModel.RunWorkerCompletedEventArgs e)
+        private void backgroundWorker_ProgressChanged(object sender, System.ComponentModel.ProgressChangedEventArgs e)
+        {
+            progressBar1.Value = e.ProgressPercentage;
+            label4.Text = this.label4text;
+        }
+        private void backgroundWorker_RunWorkerCompleted(object sender, System.ComponentModel.RunWorkerCompletedEventArgs e)
         {
             reset();
-        }
-
-        private void button3_Click(object sender, EventArgs e)
-        {
-            refreshgoogledata();
-        }
-
-        private void güncelleştirmeleriDenetleToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            checkforupdates(true);
-        }
-
-        private void hakkındaToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            MessageBox.Show("Turktoon Upload Bot Sürüm " + this.version + "\n\nGhostPet tarafından yapılmıştır. Tüm hakları saklıdır.");
         }
     }
 }

@@ -137,7 +137,21 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Classes.cs" />
+    <Compile Include="AddManga.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="AddManga.Designer.cs">
+      <DependentUpon>AddManga.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Uploader.cs" />
+    <Compile Include="AddCover.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="AddCover.Designer.cs">
+      <DependentUpon>AddCover.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Driver.cs" />
+    <Compile Include="GoogleApi.cs" />
     <Compile Include="MainUi.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -152,6 +166,13 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="User.cs" />
+    <EmbeddedResource Include="AddCover.resx">
+      <DependentUpon>AddCover.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="AddManga.resx">
+      <DependentUpon>AddManga.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Login.resx">
       <DependentUpon>Login.cs</DependentUpon>
     </EmbeddedResource>
@@ -200,6 +221,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="favicon.ico" />
+    <None Include="ttbotlogo.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\Selenium.WebDriver.ChromeDriver.97.0.4692.7100\build\Selenium.WebDriver.ChromeDriver.targets" Condition="Exists('..\packages\Selenium.WebDriver.ChromeDriver.97.0.4692.7100\build\Selenium.WebDriver.ChromeDriver.targets')" />
